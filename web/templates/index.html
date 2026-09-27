@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriCompoundAI Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <span class="logo-icon">🌿</span>
+                <h1>AgriCompound<span class="highlight">AI</span></h1>
+            </div>
+            <div class="status-panel">
+                <span class="status-label">HW MODE:</span>
+                <span class="status-value {{ hw_mode }}">{{ hw_mode.upper() }}</span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Panel: Camera & Controls -->
+            <section class="card camera-card">
+                <div class="card-header">
+                    <h2>Live Camera Feed</h2>
+                    <div class="xai-toggle-container">
+                        <label class="switch">
+                            <input type="checkbox" id="heatmap-toggle" disabled>
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-label">Grad-CAM XAI</span>
+                    </div>
+                </div>
+                <div class="camera-feed-container">
+                    <img id="camera-feed" src="https://placehold.co/400x300/182232/00e5ff?text=No+Active+Scan" alt="Camera Feed">
+                </div>
+                <div class="controls-panel">
+                    {% if hw_mode == 'sim' %}
+                    <div class="control-group">
+                        <label for="plant-select">Target Plant:</label>
+                        <select id="plant-select">
+                            <option value="">-- Random --</option>
+                            <option value="Tomato">Tomato</option>
+                            <option value="Spinach">Spinach</option>
+                            <option value="Turmeric">Turmeric</option>
+                            <option value="Basil">Basil</option>
+                            <option value="Lavender">Lavender</option>
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="btn-group">
+                        <button id="scan-btn" class="btn btn-primary">Start Scan</button>
+                        <button id="clear-btn" class="btn btn-secondary">Clear Logs</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Center Panel: Core AI Metrics -->
+            <section class="card metrics-card">
+                <h2>Analysis Results</h2>
+                <div class="plant-identity">
+                    <div class="id-badge">
+                        <span id="detected-plant-name">No Scan Yet</span>
+                        <span id="detected-scientific-name"></span>
+                    </div>
+                    <div class="confidence-badge">
+                        <span class="metric-label">Confidence</span>
+                        <span id="id-confidence" class="metric-value">--</span>
+                    </div>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <span class="metric-label">Freshness</span>
+                        <div class="progress-bar-container">
+                            <div id="freshness-bar" class="progress-bar" style="width: 0%"></div>
+                        </div>
+                        <span id="freshness-value" class="metric-value">--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Quality Grade</span>
+                        <span id="quality-grade" class="metric-value">--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Maturity Level</span>
+                        <span id="maturity-level" class="metric-value">--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Shelf-Life Prediction</span>
+                        <span id="shelf-life" class="metric-value">--</span>
+                    </div>
+                    <div class="metric-item score-item">
+                        <span class="metric-label">Quality Score</span>
+                        <span id="quality-score" class="metric-value">--</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Bioactive Compounds -->
+            <section class="card compounds-card">
+                <h2>Bioactive Compounds</h2>
+                <div id="compounds-placeholder" class="placeholder-text">
+                    Run a scan to estimate bioactive compound concentrations.
+                </div>
+                <div id="compounds-list" class="compounds-list hidden">
+                    <!-- Dynamically populated compound gauges -->
+                </div>
+                <div class="compound-note">
+                    <span class="warning-icon">⚠</span>
+                    <p>Estimates are calculated using transparent linear calibration formulas over fused color and spectral bands.</p>
+                </div>
+            </section>
+
+            <!-- Bottom Left Panel: Diagnostic Sensors & Indexes -->
+            <section class="card diagnostics-card">
+                <h2>Diagnostics & Environment</h2>
+                <div class="diagnostics-grid">
+                    <div class="diag-item">
+                        <span class="diag-icon">🌡</span>
+                        <span class="diag-label">Temp</span>
+                        <span id="temp-val" class="diag-value">--</span>
+                    </div>
+                    <div class="diag-item">
+                        <span class="diag-icon">💧</span>
+                        <span class="diag-label">Humidity</span>
+                        <span id="humidity-val" class="diag-value">--</span>
+                    </div>
+                    <div class="diag-item">
+                        <span class="diag-icon">📈</span>
+                        <span class="diag-label">NDVI</span>
+                        <span id="ndvi-val" class="diag-value">--</span>
+                    </div>
+                    <div class="diag-item">
+                        <span class="diag-icon">🌊</span>
+                        <span class="diag-label">Water Index (WBI)</span>
+                        <span id="wbi-val" class="diag-value">--</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Center Panel: Explainable AI & Scientific Notes -->
+            <section class="card xai-card">
+                <h2>Explainable AI Report</h2>
+                <div id="xai-report" class="xai-report-text">
+                    Waiting for scan to compile analysis report...
+                </div>
+                <div class="scientific-tabs">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="tab-nutrition">Nutrition Info</button>
+                        <button class="tab-btn" data-tab="tab-storage">Storage & Cooking</button>
+                        <button class="tab-btn" data-tab="tab-details">Botanical Info</button>
+                    </div>
+                    <div class="tabs-content">
+                        <div id="tab-nutrition" class="tab-pane active">
+                            <p id="info-nutrition">Perform a scan to query agricultural knowledge base.</p>
+                        </div>
+                        <div id="tab-storage" class="tab-pane">
+                            <p id="info-storage">Perform a scan to query agricultural knowledge base.</p>
+                        </div>
+                        <div id="tab-details" class="tab-pane">
+                            <p><strong>Similar Plants:</strong> <span id="info-similar">--</span></p>
+                            <p><strong>Educational Notes:</strong> <span id="info-education">--</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Right Panel: Graphs -->
+            <section class="card charts-card">
+                <div class="chart-container">
+                    <canvas id="spectralChart"></canvas>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer containing the medical disclaimer -->
+        <footer class="app-footer">
+            <p><strong>Disclaimer:</strong> Bioactive compound estimates are AI-generated approximations for research and education. These values are NOT certified laboratory measurements (HPLC/spectroscopy) or medical advice.</p>
+        </footer>
+    </div>
+
+    <!-- Page Scripts -->
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

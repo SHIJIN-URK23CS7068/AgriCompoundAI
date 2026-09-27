@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+
+# Runtime data (regenerated at runtime, not source)
+data/*.db
+data/*.log
+web/static/captures/*
+
+# Env
+.env
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
